@@ -415,7 +415,8 @@
                 modelTag = "abfl";
             }
 
-            const finalString = headerPart + ',' + lineStrings.join(';') + ',' + modelTag;
+            // Adicionado "*brat" na frente da string final copiada
+            const finalString = "*brat " + headerPart + ',' + lineStrings.join(';') + ',' + modelTag;
 
             return {
                 lines,
