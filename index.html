@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Callie Brats - stickers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brat: '#8ace00',
+                    },
+                    fontFamily: {
+                        brat: ['"Arial Narrow"', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Arial Narrow', Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-full flex flex-col selection:bg-brat selection:text-black">
+
+    <header class="border-b border-zinc-800/80 bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+            <span class="bg-brat text-black font-bold px-2.5 py-1 text-xs sm:text-sm rounded tracking-tighter uppercase shadow-sm">Callie</span>
+            <h1 class="font-bold text-sm sm:text-base tracking-tight text-zinc-100">BRATS</h1>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center gap-1.5 text-xs text-zinc-400 bg-zinc-950/80 px-2.5 py-1 rounded-lg border border-zinc-800">
+                <span class="w-2 h-2 rounded-full bg-brat animate-pulse"></span> 512x512 Clean SVG
+            </span>
+        </div>
+    </header>
+
+    <div id="floating-sticker" class="fixed top-20 right-4 z-50 bg-zinc-900/95 border-2 border-brat/80 rounded-2xl p-2 shadow-2xl cursor-grab active:cursor-grabbing hidden lg:hidden transition-transform duration-75 select-none touch-none">
+        <div class="flex items-center justify-between pb-1 px-1">
+            <span class="text-[10px] uppercase font-bold text-brat tracking-wider">Visualização</span>
+            <button id="floating-close" type="button" class="text-zinc-400 hover:text-white text-xs px-1 font-bold">×</button>
+        </div>
+        <div class="w-28 h-28 bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center pointer-events-none">
+            <canvas id="floating-canvas" class="w-full h-full object-contain"></canvas>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        
+        <section id="preview-section" class="lg:col-span-5 lg:sticky lg:top-20 bg-zinc-900/90 border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center justify-center space-y-4">
+            <div class="w-full flex items-center justify-between">
+                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="eye" class="w-4 h-4 text-brat"></i> Pré-visualização
+                </h2>
+                <span id="char-badge" class="text-xs font-mono font-medium text-zinc-400 bg-zinc-950 px-2.5 py-1 rounded-lg border border-zinc-800">0/92</span>
+            </div>
+
+            <div class="relative p-2.5 bg-zinc-950 rounded-2xl border border-zinc-800 shadow-inner flex items-center justify-center w-full max-w-[320px] sm:max-w-[360px] aspect-square">
+                <canvas id="brat-canvas" width="512" height="512" class="hidden"></canvas>
+                <canvas id="preview-canvas" class="w-full h-full rounded-xl object-contain shadow-md"></canvas>
+            </div>
+
+            <div class="w-full grid grid-cols-2 gap-2.5">
+                <button id="btn-download-png" class="w-full bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-200 font-bold py-3.5 px-3 rounded-xl shadow-lg transition duration-150 flex items-center justify-center space-x-2 text-xs sm:text-sm uppercase tracking-wider cursor-pointer border border-zinc-700">
+                    <i data-lucide="download" class="w-4 h-4 stroke-[2.5]"></i>
+                    <span>Baixar PNG</span>
+                </button>
+                <button id="btn-copy-svg" class="w-full bg-brat hover:bg-[#7ce000] active:scale-95 text-black font-extrabold py-3.5 px-3 rounded-xl shadow-lg transition duration-150 flex items-center justify-center space-x-2 text-xs sm:text-sm uppercase tracking-wider cursor-pointer">
+                    <i data-lucide="copy" class="w-4 h-4 stroke-[2.5]"></i>
+                    <span>Copiar Parâmetros</span>
+                </button>
+            </div>
+            
+            <p class="text-[11px] text-zinc-500 text-center leading-relaxed">
+                Clique em <span class="text-zinc-300 font-medium">Copiar Parâmetros</span> para enviar o formato otimizado para a Callie.
+            </p>
+        </section>
+
+        <section class="lg:col-span-7 bg-zinc-900/90 border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col space-y-5">
+            
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="type" class="w-4 h-4 text-brat"></i> Texto da Figurinha
+                </h2>
+                <button id="btn-clear" class="text-xs text-zinc-400 hover:text-zinc-200 underline transition">Limpar texto</button>
+            </div>
+
+            <div class="space-y-2">
+                <textarea id="brat-text" rows="3" maxlength="92" placeholder="digite seu texto brat..." 
+                    class="w-full bg-zinc-950 border border-zinc-700/80 rounded-2xl p-4 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-brat focus:ring-1 focus:ring-brat text-base sm:text-lg lowercase transition shadow-inner resize-none font-['Arial_Narrow',Arial,sans-serif]"></textarea>
+                <div class="flex items-center justify-between text-xs text-zinc-500 px-1">
+                    <span>Máximo de 92 caracteres</span>
+                    <span id="word-count-info">0 palavras</span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Sugestões Rápidas</label>
+                <div class="flex flex-wrap gap-1.5" id="presets-container">
+                    <button class="preset-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 py-1.5 rounded-lg border border-zinc-700 transition active:scale-95">brat summer</button>
+                    <button class="preset-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 py-1.5 rounded-lg border border-zinc-700 transition active:scale-95">365 party girl</button>
+                    <button class="preset-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 py-1.5 rounded-lg border border-zinc-700 transition active:scale-95">bumpin that</button>
+                    <button class="preset-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 py-1.5 rounded-lg border border-zinc-700 transition active:scale-95">networking</button>
+                </div>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-zinc-800">
+                <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Modelos brat</label>
+                <div class="grid grid-cols-3 gap-2" id="brat-models-container">
+                    <button type="button" data-model="default" class="brat-model-btn py-2 px-3 rounded-xl bg-brat text-black text-xs font-semibold border border-brat transition">Nenhum (Padrão)</button>
+                    <button type="button" data-model="abrat" class="brat-model-btn py-2 px-3 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700 hover:bg-zinc-700 transition">abrat</button>
+                    <button type="button" data-model="abrat-flash" class="brat-model-btn py-2 px-3 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700 hover:bg-zinc-700 transition">abrat-flash</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-zinc-800">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Fundo</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="color" id="bg-color-picker" value="#8ace00" class="w-10 h-10 bg-transparent rounded-xl cursor-pointer border border-zinc-700 p-0.5">
+                        <button id="btn-reset-bg" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs py-2 px-3 rounded-xl font-medium transition border border-zinc-700">
+                            Verde Brat Padrão
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Texto</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="color" id="text-color-picker" value="#000000" class="w-10 h-10 bg-transparent rounded-xl cursor-pointer border border-zinc-700 p-0.5">
+                        <button id="btn-reset-text" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs py-2 px-3 rounded-xl font-medium transition border border-zinc-700">
+                            Preto Clássico
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4 pt-3 border-t border-zinc-800">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <label for="blur-slider" class="font-semibold text-zinc-400 uppercase tracking-wider">Efeito Borrado (Blur)</label>
+                        <span id="blur-value" class="font-mono text-zinc-400">1.2px</span>
+                    </div>
+                    <input type="range" id="blur-slider" min="0" max="4" step="0.2" value="1.2" class="w-full accent-brat cursor-pointer h-2 bg-zinc-950 rounded-lg">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <label for="fontsize-slider" class="font-semibold text-zinc-400 uppercase tracking-wider">Tamanho da Fonte</label>
+                        <span id="fontsize-value" class="font-mono text-zinc-400">Automático</span>
+                    </div>
+                    <input type="range" id="fontsize-slider" min="20" max="100" step="2" value="60" class="w-full accent-brat cursor-pointer h-2 bg-zinc-950 rounded-lg">
+                    <div class="flex justify-between items-center text-xs text-zinc-500 pt-1">
+                        <span>Compacto</span>
+                        <button id="btn-auto-fontsize" class="text-brat underline hover:text-emerald-400">Restaurar Automático</button>
+                        <span>Grande</span>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Alinhamento</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button data-align="left" class="align-btn py-2 px-3 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700 hover:bg-zinc-700 transition">Esquerda</button>
+                        <button data-align="center" class="align-btn py-2 px-3 rounded-xl bg-brat text-black text-xs font-semibold border border-brat transition">Centro</button>
+                        <button data-align="right" class="align-btn py-2 px-3 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700 hover:bg-zinc-700 transition">Direita</button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col space-y-2">
+                    <label class="flex items-center space-x-3 cursor-pointer select-none">
+                        <input type="checkbox" id="toggle-lowercase" checked class="w-4 h-4 accent-brat rounded bg-zinc-950 border-zinc-700">
+                        <span class="text-xs sm:text-sm text-zinc-300">Forçar letras minúsculas automaticamente</span>
+                    </label>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-zinc-900 border border-zinc-700 text-zinc-100 px-5 py-3 rounded-2xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center space-x-3 pointer-events-none">
+        <div id="toast-icon" class="text-brat font-bold text-lg">✓</div>
+        <div id="toast-message" class="text-xs sm:text-sm font-medium">Parâmetros copiados!</div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const textInput = document.getElementById('brat-text');
+        const charBadge = document.getElementById('char-badge');
+        const wordCountInfo = document.getElementById('word-count-info');
+        const bgColorPicker = document.getElementById('bg-color-picker');
+        const btnResetBg = document.getElementById('btn-reset-bg');
+        const textColorPicker = document.getElementById('text-color-picker');
+        const btnResetText = document.getElementById('btn-reset-text');
+        const blurSlider = document.getElementById('blur-slider');
+        const blurValue = document.getElementById('blur-value');
+        const fontsizeSlider = document.getElementById('fontsize-slider');
+        const fontsizeValue = document.getElementById('fontsize-value');
+        const btnAutoFontsize = document.getElementById('btn-auto-fontsize');
+        const toggleLowercase = document.getElementById('toggle-lowercase');
+        const alignButtons = document.querySelectorAll('.align-btn');
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        const bratModelButtons = document.querySelectorAll('.brat-model-btn');
+        const btnClear = document.getElementById('btn-clear');
+        
+        const canvas = document.getElementById('brat-canvas');
+        const previewCanvas = document.getElementById('preview-canvas');
+        const floatingCanvas = document.getElementById('floating-canvas');
+        const floatingSticker = document.getElementById('floating-sticker');
+        const floatingClose = document.getElementById('floating-close');
+        const previewSection = document.getElementById('preview-section');
+
+        const btnDownloadPng = document.getElementById('btn-download-png');
+        const btnCopySvg = document.getElementById('btn-copy-svg');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        let currentAlign = 'center';
+        let selectedBratModel = 'default';
+        let isAutoFont = true;
+        const maxChars = 92;
+        let userClosedFloating = false;
+
+        textInput.value = "brat summer";
+
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                textInput.value = btn.textContent;
+                updateStats();
+                renderBratSticker();
+            });
+        });
+
+        bratModelButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                bratModelButtons.forEach(b => {
+                    b.classList.remove('bg-brat', 'text-black', 'border-brat');
+                    b.classList.add('bg-zinc-800', 'text-zinc-300', 'border-zinc-700');
+                });
+                btn.classList.remove('bg-zinc-800', 'text-zinc-300', 'border-zinc-700');
+                btn.classList.add('bg-brat', 'text-black', 'border-brat');
+                selectedBratModel = btn.getAttribute('data-model');
+            });
+        });
+
+        btnClear.addEventListener('click', () => {
+            textInput.value = '';
+            updateStats();
+            renderBratSticker();
+        });
+
+        alignButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                alignButtons.forEach(b => {
+                    b.classList.remove('bg-brat', 'text-black', 'border-brat');
+                    b.classList.add('bg-zinc-800', 'text-zinc-300', 'border-zinc-700');
+                });
+                btn.classList.remove('bg-zinc-800', 'text-zinc-300', 'border-zinc-700');
+                btn.classList.add('bg-brat', 'text-black', 'border-brat');
+                currentAlign = btn.getAttribute('data-align');
+                renderBratSticker();
+            });
+        });
+
+        btnResetBg.addEventListener('click', () => {
+            bgColorPicker.value = '#8ace00';
+            renderBratSticker();
+        });
+
+        btnResetText.addEventListener('click', () => {
+            textColorPicker.value = '#000000';
+            renderBratSticker();
+        });
+
+        btnAutoFontsize.addEventListener('click', () => {
+            isAutoFont = true;
+            fontsizeValue.textContent = "Automático";
+            renderBratSticker();
+        });
+
+        fontsizeSlider.addEventListener('input', () => {
+            isAutoFont = false;
+            fontsizeValue.textContent = fontsizeSlider.value + 'px';
+            renderBratSticker();
+        });
+
+        blurSlider.addEventListener('input', () => {
+            blurValue.textContent = blurSlider.value + 'px';
+            renderBratSticker();
+        });
+
+        textInput.addEventListener('input', () => {
+            if (toggleLowercase.checked) {
+                let pos = textInput.selectionStart;
+                textInput.value = textInput.value.toLowerCase();
+                textInput.setSelectionRange(pos, pos);
+            }
+            updateStats();
+            renderBratSticker();
+        });
+
+        toggleLowercase.addEventListener('change', () => {
+            if (toggleLowercase.checked) {
+                textInput.value = textInput.value.toLowerCase();
+            }
+            updateStats();
+            renderBratSticker();
+        });
+
+        bgColorPicker.addEventListener('input', renderBratSticker);
+        textColorPicker.addEventListener('input', renderBratSticker);
+
+        function updateStats() {
+            const len = textInput.value.length;
+            charBadge.textContent = `${len}/${maxChars}`;
+            const words = textInput.value.trim() ? textInput.value.trim().split(/\s+/).length : 0;
+            wordCountInfo.textContent = `${words} palavra${words === 1 ? '' : 's'}`;
+        }
+
+        function getStickerData() {
+            let rawText = textInput.value.trim() === "" ? "brat" : textInput.value;
+            if (toggleLowercase.checked) {
+                rawText = rawText.toLowerCase();
+            }
+
+            const bgColor = bgColorPicker.value;
+            const textColor = textColorPicker.value;
+            const blurAmount = parseFloat(blurSlider.value);
+            
+            let fontSize = isAutoFont ? calculateOptimalFontSize(rawText) : parseInt(fontsizeSlider.value);
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 512;
+            tempCanvas.height = 512;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.font = `400 ${fontSize}px "Arial Narrow", Arial, sans-serif`;
+            
+            const maxWidth = 424; 
+            const lines = getWrappedLines(tCtx, rawText, maxWidth);
+            
+            const lineHeight = fontSize * 1.12;
+            const totalHeight = lines.length * lineHeight;
+            let startY = (512 - totalHeight) / 2 + (lineHeight / 2);
+
+            let headerPart = [
+                "0 0 512 512",
+                "b",
+                blurAmount,
+                bgColor,
+                "url(#b)"
+            ].join(',');
+
+            let lineStrings = [];
+            lines.forEach((line, index) => {
+                let currentY = startY + (index * lineHeight);
+                let textAnchor = 'middle';
+                let xPos = 256;
+
+                if (currentAlign === 'left') {
+                    textAnchor = 'start';
+                    xPos = 44;
+                } else if (currentAlign === 'right') {
+                    textAnchor = 'end';
+                    xPos = 468;
+                } else if (currentAlign === 'center') {
+                    textAnchor = 'middle';
+                    xPos = 256;
+                }
+
+                let lineSpecific = [
+                    xPos.toFixed(1),
+                    currentY.toFixed(1),
+                    fontSize,
+                    textColor,
+                    textAnchor,
+                    "middle",
+                    line
+                ].join(',');
+
+                lineStrings.push(lineSpecific);
+            });
+
+            let modelTag = "bt";
+            if (selectedBratModel === "abrat") {
+                modelTag = "abt";
+            } else if (selectedBratModel === "abrat-flash") {
+                modelTag = "abfl";
+            }
+
+            const finalString = headerPart + ',' + lineStrings.join(';') + ',' + modelTag;
+
+            return {
+                lines,
+                fontSize,
+                lineHeight,
+                startY,
+                bgColor,
+                textColor,
+                blurAmount,
+                customString: finalString
+            };
+        }
+
+        function renderBratSticker() {
+            const ctx = canvas.getContext('2d', { alpha: false });
+            const previewCtx = previewCanvas.getContext('2d');
+            const floatingCtx = floatingCanvas.getContext('2d');
+            
+            canvas.width = 512;
+            canvas.height = 512;
+            previewCanvas.width = 512;
+            previewCanvas.height = 512;
+            floatingCanvas.width = 256;
+            floatingCanvas.height = 256;
+
+            const data = getStickerData();
+
+            ctx.fillStyle = data.bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = data.textColor;
+            ctx.font = `400 ${data.fontSize}px "Arial Narrow", Arial, sans-serif`;
+            ctx.textBaseline = 'middle';
+
+            if (data.blurAmount > 0) {
+                ctx.filter = `blur(${data.blurAmount}px)`;
+            } else {
+                ctx.filter = 'none';
+            }
+
+            data.lines.forEach((line, index) => {
+                let currentY = data.startY + (index * data.lineHeight);
+                let currentX = 44;
+
+                if (currentAlign === 'center') {
+                    let metrics = ctx.measureText(line);
+                    currentX = (canvas.width - metrics.width) / 2;
+                } else if (currentAlign === 'right') {
+                    let metrics = ctx.measureText(line);
+                    currentX = canvas.width - 44 - metrics.width;
+                }
+
+                ctx.fillText(line, currentX, currentY);
+            });
+
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            previewCtx.drawImage(canvas, 0, 0);
+
+            floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
+            floatingCtx.drawImage(canvas, 0, 0, floatingCanvas.width, floatingCanvas.height);
+        }
+
+        function getWrappedLines(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            let lines = [];
+            let currentLine = words[0] || '';
+
+            for (let i = 1; i < words.length; i++) {
+                let word = words[i];
+                let width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+
+            let expandedLines = [];
+            lines.forEach(line => {
+                if (ctx.measureText(line).width > maxWidth) {
+                    let subLine = '';
+                    let chars = Array.from(line);
+                    for (let char of chars) {
+                        if (ctx.measureText(subLine + char).width < maxWidth) {
+                            subLine += char;
+                        } else {
+                            expandedLines.push(subLine);
+                            subLine = char;
+                        }
+                    }
+                    if (subLine) expandedLines.push(subLine);
+                } else {
+                    expandedLines.push(line);
+                }
+            });
+
+            return expandedLines;
+        }
+
+        function calculateOptimalFontSize(text) {
+            let length = text.length;
+            if (length <= 10) return 80;
+            if (length <= 25) return 64;
+            if (length <= 50) return 48;
+            if (length <= 75) return 38;
+            return 30;
+        }
+
+        btnDownloadPng.addEventListener('click', () => {
+            renderBratSticker();
+            const link = document.createElement('a');
+            link.download = 'figurinha-brat.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('PNG baixado com sucesso!');
+        });
+
+        btnCopySvg.addEventListener('click', () => {
+            renderBratSticker();
+            const data = getStickerData();
+            
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = data.customString.replace(/[\r\n]+/g, '');
+                textArea.style.position = 'fixed';
+                textArea.style.top = '0';
+                textArea.style.left = '0';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    showToast('Parâmetros otimizados copiados!');
+                } else {
+                    showToast('Erro ao copiar.');
+                }
+            } catch (err) {
+                console.error('Falha ao copiar: ', err);
+                showToast('Erro ao copiar.');
+            }
+        });
+
+        floatingClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userClosedFloating = true;
+            floatingSticker.classList.add('hidden');
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth < 1024 && !userClosedFloating) {
+                const rect = previewSection.getBoundingClientRect();
+                if (rect.top < -50) {
+                    floatingSticker.classList.remove('hidden');
+                } else {
+                    floatingSticker.classList.add('hidden');
+                }
+            } else {
+                floatingSticker.classList.add('hidden');
+            }
+        });
+
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        floatingSticker.addEventListener('touchstart', dragStart, {passive: false});
+        floatingSticker.addEventListener('mousedown', dragStart);
+
+        window.addEventListener('touchmove', drag, {passive: false});
+        window.addEventListener('mousemove', drag);
+
+        window.addEventListener('touchend', dragEnd);
+        window.addEventListener('mouseup', dragEnd);
+
+        function dragStart(e) {
+            isDragging = true;
+            const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            
+            const rect = floatingSticker.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            floatingSticker.style.right = 'auto';
+            floatingSticker.style.top = initialY + 'px';
+            floatingSticker.style.left = initialX + 'px';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            
+            let newX = initialX + dx;
+            let newY = initialY + dy;
+            
+            const maxX = window.innerWidth - floatingSticker.offsetWidth;
+            const maxY = window.innerHeight - floatingSticker.offsetHeight;
+            
+            newX = Math.max(10, Math.min(newX, maxX - 10));
+            newY = Math.max(10, Math.min(newY, maxY - 10));
+            
+            floatingSticker.style.left = newX + 'px';
+            floatingSticker.style.top = newY + 'px';
+        }
+
+        function dragEnd() {
+            isDragging = false;
+        }
+
+        window.onload = () => {
+            updateStats();
+            renderBratSticker();
+        };
+    </script>
+</body>
+</html>
